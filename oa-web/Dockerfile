@@ -1,0 +1,11 @@
+FROM node:20-alpine AS builder
+WORKDIR /build
+COPY package*.json ./
+RUN npm ci --registry=https://registry.npmjs.org
+COPY . .
+RUN npm run build
+
+FROM nginx:1.25-alpine
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /build/dist /usr/share/nginx/html
+EXPOSE 80

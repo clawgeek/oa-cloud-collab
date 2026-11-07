@@ -1,0 +1,63 @@
+# 云枢 OA · 一键生产部署
+#   docker compose up -d --build
+#   前端 http://localhost  |  后端 http://localhost:8080/api/health
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: oa-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-yunshu_oa_2026}
+      MYSQL_DATABASE: yunshu_oa
+      TZ: Asia/Shanghai
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-time-zone=+08:00
+    ports:
+      - "3306:3306"
+    volumes:
+      - oa_mysql_data:/var/lib/mysql
+      - ./sql/schema-mysql.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./sql/data.sql:/docker-entrypoint-initdb.d/02-data.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-yunshu_oa_2026}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  oa-server:
+    build:
+      context: ./oa-server
+      dockerfile: Dockerfile
+    container_name: oa-server
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DB: yunshu_oa
+      MYSQL_USER: root
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-yunshu_oa_2026}
+      OA_JWT_SECRET: ${OA_JWT_SECRET:-please-change-this-secret-in-production}
+      OA_UPLOAD_DIR: /app/data/uploads
+      TZ: Asia/Shanghai
+    ports:
+      - "8080:8080"
+    volumes:
+      - oa_uploads:/app/data/uploads
+
+  oa-web:
+    build:
+      context: ./oa-web
+      dockerfile: Dockerfile
+    container_name: oa-web
+    restart: unless-stopped
+    depends_on:
+      - oa-server
+    ports:
+      - "80:80"
+
+volumes:
+  oa_mysql_data:
+  oa_uploads:

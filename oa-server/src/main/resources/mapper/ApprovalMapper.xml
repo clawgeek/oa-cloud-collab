@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunshu.oa.mapper.ApprovalMapper">
+
+    <select id="listDefs" resultType="com.yunshu.oa.entity.ProcessDef">
+        SELECT * FROM wf_process_def WHERE status = 1 ORDER BY id
+    </select>
+    <select id="findDef" resultType="com.yunshu.oa.entity.ProcessDef">
+        SELECT * FROM wf_process_def WHERE proc_key = #{procKey}
+    </select>
+    <sql id="instWhere">
+        FROM wf_instance i WHERE 1 = 1
+        <if test="scope == 'mine'">AND i.applicant_id = #{userId}</if>
+        <if test="scope == 'todo'">AND i.status = 'RUNNING' AND EXISTS (
+            SELECT 1 FROM wf_task t WHERE t.instance_id = i.id AND t.assignee_id = #{userId} AND t.status = 'PENDING')</if>
+        <if test="status != null and status != ''">AND i.status = #{status}</if>
+        <if test="kw != null and kw != ''">AND i.title LIKE CONCAT('%', #{kw}, '%')</if>
+    </sql>
+    <select id="countInstances" resultType="long">SELECT COUNT(*) <include refid="instWhere"/></select>
+    <select id="pageInstances" resultType="com.yunshu.oa.entity.FlowInstance">
+        SELECT * <include refid="instWhere"/> ORDER BY i.id DESC LIMIT #{size} OFFSET #{offset}
+    </select>
+    <select id="findInstance" resultType="com.yunshu.oa.entity.FlowInstance">
+        SELECT * FROM wf_instance WHERE id = #{id}
+    </select>
+    <insert id="insertInstance" parameterType="com.yunshu.oa.entity.FlowInstance" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO wf_instance (proc_key, biz_type, biz_id, title, applicant_id, applicant_name,
+                                 current_node, current_node_name, status, form_json)
+        VALUES (#{procKey}, #{bizType}, #{bizId}, #{title}, #{applicantId}, #{applicantName},
+                #{currentNode}, #{currentNodeName}, #{status}, #{formJson})
+    </insert>
+    <update id="updateInstance">
+        UPDATE wf_instance SET current_node=#{nodeKey}, current_node_name=#{nodeName}, status=#{status}
+        <if test='status != "RUNNING"'>, finish_time = CURRENT_TIMESTAMP</if>
+        WHERE id=#{id}
+    </update>
+    <select id="listTasks" resultType="com.yunshu.oa.entity.FlowTask">
+        SELECT * FROM wf_task WHERE instance_id = #{instanceId} ORDER BY id
+    </select>
+    <select id="findPendingTask" resultType="com.yunshu.oa.entity.FlowTask">
+        SELECT * FROM wf_task WHERE instance_id = #{instanceId} AND assignee_id = #{assigneeId}
+        AND status = 'PENDING' ORDER BY id LIMIT 1
+    </select>
+    <select id="countTodo" resultType="long">
+        SELECT COUNT(*) FROM wf_task t JOIN wf_instance i ON i.id = t.instance_id
+        WHERE t.assignee_id = #{assigneeId} AND t.status = 'PENDING' AND i.status = 'RUNNING'
+    </select>
+    <select id="pageTodo" resultType="com.yunshu.oa.entity.FlowTask">
+        SELECT t.*, i.title AS instance_title FROM wf_task t JOIN wf_instance i ON i.id = t.instance_id
+        WHERE t.assignee_id = #{assigneeId} AND t.status = 'PENDING' AND i.status = 'RUNNING'
+        ORDER BY t.id DESC LIMIT #{size} OFFSET #{offset}
+    </select>
+    <insert id="insertTask" parameterType="com.yunshu.oa.entity.FlowTask">
+        INSERT INTO wf_task (instance_id, node_key, node_name, assignee_id, assignee_name, status)
+        VALUES (#{instanceId}, #{nodeKey}, #{nodeName}, #{assigneeId}, #{assigneeName}, 'PENDING')
+    </insert>
+    <update id="finishTask">
+        UPDATE wf_task SET action=#{action}, comment=#{comment}, status='DONE', finish_time=CURRENT_TIMESTAMP WHERE id=#{id}
+    </update>
+    <update id="cancelTasks">
+        UPDATE wf_task SET status='CANCELED', finish_time=CURRENT_TIMESTAMP
+        WHERE instance_id = #{instanceId} AND status = 'PENDING'
+    </update>
+
+</mapper>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunshu.oa.mapper.AttendanceMapper">
+
+    <select id="findToday" resultType="com.yunshu.oa.entity.Checkin">
+        SELECT * FROM att_checkin WHERE user_id = #{userId} AND check_date = #{day} ORDER BY id DESC LIMIT 1
+    </select>
+    <insert id="insertCheckin" parameterType="com.yunshu.oa.entity.Checkin">
+        INSERT INTO att_checkin (user_id, check_date, check_in, in_status, location)
+        VALUES (#{userId}, #{checkDate}, #{checkIn}, #{inStatus}, #{location})
+    </insert>
+    <update id="updateCheckout">
+        UPDATE att_checkin SET check_out=#{time}, out_status=#{status}, work_hours=#{hours} WHERE id=#{id}
+    </update>
+    <sql id="recWhere">
+        FROM att_checkin c JOIN sys_user u ON u.id = c.user_id LEFT JOIN sys_dept d ON d.id = u.dept_id
+        WHERE 1 = 1
+        <if test="userId != null">AND c.user_id = #{userId}</if>
+        <if test="month != null and month != ''">AND c.check_date LIKE CONCAT(#{month}, '%')</if>
+    </sql>
+    <select id="countRecords" resultType="long">SELECT COUNT(*) <include refid="recWhere"/></select>
+    <select id="pageRecords" resultType="com.yunshu.oa.entity.Checkin">
+        SELECT c.*, u.real_name AS real_name, d.dept_name AS dept_name
+        <include refid="recWhere"/> ORDER BY c.check_date DESC, c.id DESC LIMIT #{size} OFFSET #{offset}
+    </select>
+    <select id="monthSummary" resultType="map">
+        SELECT u.real_name AS real_name, d.dept_name AS dept_name, COUNT(*) AS days,
+               SUM(CASE WHEN c.in_status = 'LATE' THEN 1 ELSE 0 END) AS late,
+               SUM(CASE WHEN c.out_status = 'EARLY' THEN 1 ELSE 0 END) AS early,
+               SUM(c.work_hours) AS hours
+        FROM att_checkin c JOIN sys_user u ON u.id = c.user_id LEFT JOIN sys_dept d ON d.id = u.dept_id
+        WHERE c.check_date LIKE CONCAT(#{month}, '%')
+        GROUP BY u.id, u.real_name, d.dept_name ORDER BY days DESC, late DESC
+    </select>
+    <select id="findBalance" resultType="com.yunshu.oa.entity.LeaveBalance">
+        SELECT * FROM att_leave_balance WHERE user_id = #{userId} AND year_no = #{year}
+    </select>
+    <update id="consumeBalance">
+        UPDATE att_leave_balance SET annual_used = annual_used + #{days} WHERE user_id = #{userId}
+    </update>
+
+</mapper>

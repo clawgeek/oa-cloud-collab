@@ -1,0 +1,27 @@
+# ---- 后端 ----
+target/
+*.class
+*.log
+oa-server/data/uploads/
+!oa-server/data/uploads/.gitkeep
+.mvn/wrapper/maven-wrapper.jar
+
+# ---- 前端 ----
+node_modules/
+dist/
+.vite/
+*.local
+
+# ---- IDE / 系统 ----
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# ---- 密钥 / 本地环境 ----
+.env
+.env.local
+*.key
+*.pem
+tools/.token

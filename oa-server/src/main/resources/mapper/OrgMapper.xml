@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunshu.oa.mapper.OrgMapper">
+
+    <select id="listDepts" resultType="com.yunshu.oa.entity.Dept">
+        SELECT d.*, u.real_name AS leader_name,
+               (SELECT COUNT(*) FROM sys_user x WHERE x.dept_id = d.id) AS staff_count
+        FROM sys_dept d LEFT JOIN sys_user u ON u.id = d.leader_id ORDER BY d.sort_no, d.id
+    </select>
+    <select id="listPosts" resultType="com.yunshu.oa.entity.Post">
+        SELECT * FROM sys_post ORDER BY sort_no
+    </select>
+    <sql id="userWhere">
+        FROM sys_user u LEFT JOIN sys_dept d ON u.dept_id = d.id LEFT JOIN sys_post p ON u.post_id = p.id
+        WHERE 1 = 1
+        <if test="kw != null and kw != ''">
+            AND (u.real_name LIKE CONCAT('%', #{kw}, '%') OR u.username LIKE CONCAT('%', #{kw}, '%')
+                 OR u.phone LIKE CONCAT('%', #{kw}, '%'))
+        </if>
+        <if test="deptId != null">AND (u.dept_id = #{deptId} OR d.parent_id = #{deptId})</if>
+        <if test="status != null">AND u.status = #{status}</if>
+    </sql>
+    <select id="countUsers" resultType="long">
+        SELECT COUNT(*) <include refid="userWhere"/>
+    </select>
+    <select id="pageUsers" resultType="com.yunshu.oa.entity.User">
+        SELECT u.*, d.dept_name AS dept_name, p.post_name AS post_name
+        <include refid="userWhere"/> ORDER BY u.dept_id, u.id LIMIT #{size} OFFSET #{offset}
+    </select>
+    <select id="getUser" resultType="com.yunshu.oa.entity.User">
+        SELECT u.*, d.dept_name AS dept_name, p.post_name AS post_name FROM sys_user u
+        LEFT JOIN sys_dept d ON u.dept_id = d.id LEFT JOIN sys_post p ON u.post_id = p.id WHERE u.id = #{id}
+    </select>
+    <insert id="insertUser" parameterType="com.yunshu.oa.entity.User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_user (username, password, real_name, avatar, dept_id, post_id, phone, email, status, hire_date)
+        VALUES (#{username}, #{password}, #{realName}, #{avatar}, #{deptId}, #{postId}, #{phone}, #{email}, #{status}, #{hireDate})
+    </insert>
+    <update id="updateUser" parameterType="com.yunshu.oa.entity.User">
+        UPDATE sys_user SET real_name=#{realName}, dept_id=#{deptId}, post_id=#{postId}, phone=#{phone},
+        email=#{email}, status=#{status} WHERE id=#{id}
+    </update>
+    <delete id="deleteUser">DELETE FROM sys_user WHERE id = #{id}</delete>
+    <insert id="insertDept" parameterType="com.yunshu.oa.entity.Dept" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_dept (parent_id, dept_name, dept_code, leader_id, sort_no, status)
+        VALUES (#{parentId}, #{deptName}, #{deptCode}, #{leaderId}, #{sortNo}, #{status})
+    </insert>
+    <update id="updateDept" parameterType="com.yunshu.oa.entity.Dept">
+        UPDATE sys_dept SET parent_id=#{parentId}, dept_name=#{deptName}, dept_code=#{deptCode},
+        leader_id=#{leaderId}, sort_no=#{sortNo}, status=#{status} WHERE id=#{id}
+    </update>
+    <delete id="deleteDept">DELETE FROM sys_dept WHERE id = #{id}</delete>
+    <select id="listRoles" resultType="com.yunshu.oa.entity.Role">SELECT * FROM sys_role ORDER BY id</select>
+    <select id="listAllMenus" resultType="com.yunshu.oa.entity.Menu">SELECT * FROM sys_menu ORDER BY parent_id, sort_no</select>
+    <select id="listMenuIdsOfRole" resultType="long">SELECT menu_id FROM sys_role_menu WHERE role_id = #{roleId}</select>
+    <delete id="deleteRoleMenus">DELETE FROM sys_role_menu WHERE role_id = #{roleId}</delete>
+    <insert id="insertRoleMenus">
+        INSERT INTO sys_role_menu (role_id, menu_id) VALUES
+        <foreach collection="menuIds" item="mid" separator=",">(#{roleId}, #{mid})</foreach>
+    </insert>
+    <select id="findDeptLeader" resultType="long">
+        SELECT leader_id FROM sys_dept WHERE id = #{deptId}
+    </select>
+
+</mapper>

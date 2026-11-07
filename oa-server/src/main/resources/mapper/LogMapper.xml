@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunshu.oa.mapper.LogMapper">
+
+    <insert id="insert" parameterType="map">
+        INSERT INTO sys_oper_log (user_id, user_name, module, operation, method, request_uri, ip, cost_ms, success)
+        VALUES (#{userId}, #{userName}, #{module}, #{operation}, #{method}, #{requestUri}, #{ip}, #{costMs}, #{success})
+    </insert>
+    <select id="countLogs" resultType="long">
+        SELECT COUNT(*) FROM sys_oper_log WHERE 1 = 1
+        <if test="kw != null and kw != ''">AND (user_name LIKE CONCAT('%', #{kw}, '%') OR operation LIKE CONCAT('%', #{kw}, '%'))</if>
+        <if test="module != null and module != ''">AND module = #{module}</if>
+    </select>
+    <select id="pageLogs" resultType="com.yunshu.oa.entity.OperLog">
+        SELECT * FROM sys_oper_log WHERE 1 = 1
+        <if test="kw != null and kw != ''">AND (user_name LIKE CONCAT('%', #{kw}, '%') OR operation LIKE CONCAT('%', #{kw}, '%'))</if>
+        <if test="module != null and module != ''">AND module = #{module}</if>
+        ORDER BY id DESC LIMIT #{size} OFFSET #{offset}
+    </select>
+
+</mapper>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunshu.oa.mapper.WorkMapper">
+
+    <select id="listProjects" resultType="com.yunshu.oa.entity.Project">
+        SELECT p.*, (SELECT COUNT(*) FROM prj_task t WHERE t.project_id = p.id) AS task_count,
+               (SELECT COUNT(*) FROM prj_task t WHERE t.project_id = p.id AND t.status = 'DONE') AS done_count
+        FROM prj_project p WHERE 1 = 1
+        <if test="status != null and status != ''">AND p.status = #{status}</if>
+        ORDER BY p.id
+    </select>
+    <select id="findProject" resultType="com.yunshu.oa.entity.Project">SELECT * FROM prj_project WHERE id = #{id}</select>
+    <insert id="insertProject" parameterType="com.yunshu.oa.entity.Project" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO prj_project (project_code, name, owner_id, owner_name, status, start_date, end_date, description)
+        VALUES (#{projectCode}, #{name}, #{ownerId}, #{ownerName}, #{status}, #{startDate}, #{endDate}, #{description})
+    </insert>
+    <update id="updateProject" parameterType="com.yunshu.oa.entity.Project">
+        UPDATE prj_project SET name=#{name}, owner_id=#{ownerId}, owner_name=#{ownerName}, status=#{status},
+        start_date=#{startDate}, end_date=#{endDate}, description=#{description} WHERE id=#{id}
+    </update>
+    <select id="listTasks" resultType="com.yunshu.oa.entity.Task">
+        SELECT t.*, p.name AS project_name FROM prj_task t JOIN prj_project p ON p.id = t.project_id WHERE 1 = 1
+        <if test="projectId != null">AND t.project_id = #{projectId}</if>
+        <if test="status != null and status != ''">AND t.status = #{status}</if>
+        <if test="kw != null and kw != ''">AND t.title LIKE CONCAT('%', #{kw}, '%')</if>
+        ORDER BY t.id
+    </select>
+    <select id="findTask" resultType="com.yunshu.oa.entity.Task">SELECT * FROM prj_task WHERE id = #{id}</select>
+    <insert id="insertTask" parameterType="com.yunshu.oa.entity.Task" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO prj_task (project_id, title, description, assignee_id, assignee_name, priority, status, progress, due_date)
+        VALUES (#{projectId}, #{title}, #{description}, #{assigneeId}, #{assigneeName}, #{priority}, #{status}, #{progress}, #{dueDate})
+    </insert>
+    <update id="updateTask" parameterType="com.yunshu.oa.entity.Task">
+        UPDATE prj_task SET title=#{title}, description=#{description}, assignee_id=#{assigneeId},
+        assignee_name=#{assigneeName}, priority=#{priority}, status=#{status}, progress=#{progress}, due_date=#{dueDate}
+        WHERE id=#{id}
+    </update>
+    <update id="moveTask">
+        UPDATE prj_task SET status=#{status}, progress=#{progress} WHERE id=#{id}
+    </update>
+    <delete id="deleteTask">DELETE FROM prj_task WHERE id = #{id}</delete>
+    <select id="listComments" resultType="com.yunshu.oa.entity.TaskComment">
+        SELECT * FROM prj_task_comment WHERE task_id = #{taskId} ORDER BY id
+    </select>
+    <insert id="insertComment" parameterType="com.yunshu.oa.entity.TaskComment">
+        INSERT INTO prj_task_comment (task_id, user_id, user_name, content)
+        VALUES (#{taskId}, #{userId}, #{userName}, #{content})
+    </insert>
+
+</mapper>

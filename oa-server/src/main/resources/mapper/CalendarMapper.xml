@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunshu.oa.mapper.CalendarMapper">
+
+    <select id="listRooms" resultType="com.yunshu.oa.entity.MeetingRoom">SELECT * FROM cal_meeting_room ORDER BY id</select>
+    <insert id="insertRoom" parameterType="com.yunshu.oa.entity.MeetingRoom">
+        INSERT INTO cal_meeting_room (name, capacity, location, equipment, status)
+        VALUES (#{name}, #{capacity}, #{location}, #{equipment}, #{status})
+    </insert>
+    <select id="listEvents" resultType="com.yunshu.oa.entity.CalendarEvent">
+        SELECT e.*, r.name AS room_name FROM cal_event e LEFT JOIN cal_meeting_room r ON r.id = e.room_id
+        WHERE 1 = 1
+        <if test="start != null and start != ''">AND e.end_time &gt;= #{start}</if>
+        <if test="end != null and end != ''">AND e.start_time &lt;= #{end}</if>
+        ORDER BY e.start_time
+    </select>
+    <select id="countConflict" resultType="int">
+        SELECT COUNT(*) FROM cal_event WHERE room_id = #{roomId}
+        AND start_time &lt; #{end} AND end_time &gt; #{start}
+        <if test="excludeId != null">AND id != #{excludeId}</if>
+    </select>
+    <insert id="insertEvent" parameterType="com.yunshu.oa.entity.CalendarEvent" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO cal_event (title, event_type, room_id, organizer_id, organizer_name, start_time, end_time, attendees, remark)
+        VALUES (#{title}, #{eventType}, #{roomId}, #{organizerId}, #{organizerName}, #{startTime}, #{endTime}, #{attendees}, #{remark})
+    </insert>
+    <delete id="deleteEvent">DELETE FROM cal_event WHERE id = #{id}</delete>
+
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunshu.oa.mapper.NoticeMapper">
+
+    <sql id="noticeWhere">
+        FROM oa_notice n WHERE 1 = 1
+        <if test="kw != null and kw != ''">AND n.title LIKE CONCAT('%', #{kw}, '%')</if>
+        <if test="category != null and category != ''">AND n.category = #{category}</if>
+    </sql>
+    <select id="countNotices" resultType="long">SELECT COUNT(*) <include refid="noticeWhere"/></select>
+    <select id="pageNotices" resultType="com.yunshu.oa.entity.Notice">
+        SELECT n.*, (SELECT COUNT(*) FROM oa_notice_read r WHERE r.notice_id = n.id AND r.user_id = #{userId}) AS is_read
+        <include refid="noticeWhere"/> ORDER BY n.pinned DESC, n.id DESC LIMIT #{size} OFFSET #{offset}
+    </select>
+    <select id="findNotice" resultType="com.yunshu.oa.entity.Notice">SELECT * FROM oa_notice WHERE id = #{id}</select>
+    <insert id="insertNotice" parameterType="com.yunshu.oa.entity.Notice" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO oa_notice (title, content, category, publisher_id, publisher_name, pinned)
+        VALUES (#{title}, #{content}, #{category}, #{publisherId}, #{publisherName}, #{pinned})
+    </insert>
+    <update id="updateNotice" parameterType="com.yunshu.oa.entity.Notice">
+        UPDATE oa_notice SET title=#{title}, content=#{content}, category=#{category}, pinned=#{pinned} WHERE id=#{id}
+    </update>
+    <delete id="deleteNotice">DELETE FROM oa_notice WHERE id = #{id}</delete>
+    <update id="addView">UPDATE oa_notice SET view_count = view_count + 1 WHERE id = #{id}</update>
+    <select id="countRead" resultType="int">
+        SELECT COUNT(*) FROM oa_notice_read WHERE notice_id = #{noticeId} AND user_id = #{userId}
+    </select>
+    <insert id="markRead">INSERT INTO oa_notice_read (notice_id, user_id) VALUES (#{noticeId}, #{userId})</insert>
+    <select id="countUnread" resultType="long">
+        SELECT COUNT(*) FROM oa_notice n WHERE NOT EXISTS (
+            SELECT 1 FROM oa_notice_read r WHERE r.notice_id = n.id AND r.user_id = #{userId})
+    </select>
+
+</mapper>

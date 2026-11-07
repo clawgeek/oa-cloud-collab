@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunshu.oa.mapper.DocMapper">
+
+    <select id="listFolders" resultType="com.yunshu.oa.entity.DocFolder">SELECT * FROM doc_folder ORDER BY parent_id, id</select>
+    <insert id="insertFolder" parameterType="com.yunshu.oa.entity.DocFolder">
+        INSERT INTO doc_folder (parent_id, name, owner_id) VALUES (#{parentId}, #{name}, #{ownerId})
+    </insert>
+    <delete id="deleteFolder">DELETE FROM doc_folder WHERE id = #{id}</delete>
+    <sql id="fileWhere">
+        FROM doc_file f WHERE 1 = 1
+        <if test="folderId != null">AND f.folder_id = #{folderId}</if>
+        <if test="kw != null and kw != ''">AND f.name LIKE CONCAT('%', #{kw}, '%')</if>
+    </sql>
+    <select id="countFiles" resultType="long">SELECT COUNT(*) <include refid="fileWhere"/></select>
+    <select id="pageFiles" resultType="com.yunshu.oa.entity.DocFile">
+        SELECT * <include refid="fileWhere"/> ORDER BY f.id DESC LIMIT #{size} OFFSET #{offset}
+    </select>
+    <select id="findFile" resultType="com.yunshu.oa.entity.DocFile">SELECT * FROM doc_file WHERE id = #{id}</select>
+    <insert id="insertFile" parameterType="com.yunshu.oa.entity.DocFile" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO doc_file (folder_id, name, ext, file_size, version, storage_path, uploader_id, uploader_name)
+        VALUES (#{folderId}, #{name}, #{ext}, #{fileSize}, #{version}, #{storagePath}, #{uploaderId}, #{uploaderName})
+    </insert>
+    <delete id="deleteFile">DELETE FROM doc_file WHERE id = #{id}</delete>
+    <update id="addDownload">UPDATE doc_file SET download_count = download_count + 1 WHERE id = #{id}</update>
+
+</mapper>

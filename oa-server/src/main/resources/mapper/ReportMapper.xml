@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunshu.oa.mapper.ReportMapper">
+
+    <select id="overview" resultType="map">
+        SELECT
+          (SELECT COUNT(*) FROM sys_user WHERE status = 1) AS staff,
+          (SELECT COUNT(*) FROM sys_dept) AS depts,
+          (SELECT COUNT(*) FROM wf_instance WHERE status = 'RUNNING') AS runningApprovals,
+          (SELECT COUNT(*) FROM wf_task WHERE status = 'PENDING' AND assignee_id = #{userId}) AS myTodo,
+          (SELECT COUNT(*) FROM prj_project WHERE status = 'ACTIVE') AS activeProjects,
+          (SELECT COUNT(*) FROM prj_task WHERE status != 'DONE') AS openTasks,
+          (SELECT COUNT(*) FROM att_checkin WHERE check_date = (SELECT MAX(check_date) FROM att_checkin)) AS todayCheckins,
+          (SELECT COUNT(*) FROM att_checkin WHERE in_status = 'LATE') AS monthLate,
+          (SELECT COUNT(*) FROM doc_file) AS docs,
+          (SELECT COUNT(*) FROM oa_notice) AS notices
+    </select>
+    <select id="attendanceTrend" resultType="map">
+        SELECT check_date AS label, COUNT(*) AS cnt,
+               SUM(CASE WHEN in_status = 'LATE' THEN 1 ELSE 0 END) AS late
+        FROM att_checkin GROUP BY check_date ORDER BY check_date
+    </select>
+    <select id="taskDistribution" resultType="map">
+        SELECT status AS label, COUNT(*) AS cnt FROM prj_task GROUP BY status
+    </select>
+    <select id="approvalDistribution" resultType="map">
+        SELECT status AS label, COUNT(*) AS cnt FROM wf_instance GROUP BY status
+    </select>
+    <select id="deptStaff" resultType="map">
+        SELECT d.dept_name AS label, COUNT(u.id) AS cnt FROM sys_dept d
+        LEFT JOIN sys_user u ON u.dept_id = d.id GROUP BY d.id, d.dept_name ORDER BY cnt DESC, d.id
+    </select>
+    <select id="todoList" resultType="map">
+        SELECT x.biz_type, x.title, x.sort_time, x.ref_id FROM (
+            SELECT 'APPROVAL' AS biz_type, i.title AS title, CONCAT(i.create_time, '') AS sort_time, i.id AS ref_id
+            FROM wf_instance i JOIN wf_task t ON t.instance_id = i.id
+            WHERE t.assignee_id = #{userId} AND t.status = 'PENDING' AND i.status = 'RUNNING'
+            UNION ALL
+            SELECT 'TASK' AS biz_type, t.title AS title, t.due_date AS sort_time, t.id AS ref_id
+            FROM prj_task t WHERE t.assignee_id = #{userId} AND t.status != 'DONE'
+        ) x ORDER BY x.sort_time LIMIT 8
+    </select>
+
+</mapper>
