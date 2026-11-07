@@ -4,6 +4,10 @@
 
 🌐 **开源地址**：https://github.com/clawgeek/oa-cloud-collab
 
+🎬 **5 分钟讲解视频**：[demo/云枢OA_项目讲解_1080p.mp4](demo/云枢OA_项目讲解_1080p.mp4) ·
+1920×1080 横屏 / 25fps / 中英双语字幕 / 真实部署与录屏操作 ·
+[视频内容清单](docs/演示视频.md)
+
 ---
 
 ## 一、项目定位

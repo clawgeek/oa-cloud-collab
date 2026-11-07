@@ -1,0 +1,274 @@
+1
+00:00:05,300 --> 00:00:09,127
+这是一套面向中小企业的云协同办公系统。
+This is a cloud collaboration platform built for small and mid-sized teams.
+
+2
+00:00:09,777 --> 00:00:14,630
+组织、考勤、审批、文档、任务与会议全部打通。
+Organization, attendance, approvals, docs, tasks and meetings connect here.
+
+3
+00:00:15,280 --> 00:00:19,529
+前后端完全分离，源码与部署流程全部开源。
+Frontend and backend are decoupled, with full source and deploy flow public.
+
+4
+00:00:23,229 --> 00:00:26,470
+前端是 Vue 3、路由 4 与 Element Plus 2。
+The frontend uses Vue 3, Vue Router 4 and Element Plus 2.
+
+5
+00:00:27,120 --> 00:00:31,183
+状态用 Pinia，图表用 ECharts，请求走 Axios。
+Pinia holds state, ECharts draws charts and Axios handles requests.
+
+6
+00:00:31,833 --> 00:00:35,609
+后端是 SpringBoot 3 加 MyBatis，跑在 Java 17。
+The backend is Spring Boot 3 with MyBatis on Java 17.
+
+7
+00:00:36,259 --> 00:00:40,382
+开发用内嵌数据库，生产切换到 MySQL 8。
+An embedded database serves development, MySQL 8 serves production.
+
+8
+00:00:44,082 --> 00:00:47,666
+八个业务模块覆盖企业日常办公主线。
+Eight modules cover the daily workflow of a real company.
+
+9
+00:00:48,316 --> 00:00:52,748
+组织权限采用用户、角色、菜单三级模型。
+Access control follows a three-tier user, role and menu model.
+
+10
+00:00:53,398 --> 00:00:56,996
+审批中心支持串行节点、驳回与撤回。
+The approval center supports serial nodes, rejection and withdrawal.
+
+11
+00:00:57,646 --> 00:01:00,192
+会议室预约带时间段互斥检测。
+Meeting room booking detects overlapping time slots.
+
+12
+00:01:03,892 --> 00:01:08,011
+先看部署。后端用 Maven Wrapper 一条命令打包。
+First, deployment: the backend builds with one Maven Wrapper command.
+
+13
+00:01:08,661 --> 00:01:12,434
+六十六个源文件编译通过，产出可执行 Jar 包。
+Sixty-six source files compile into one runnable jar.
+
+14
+00:01:13,084 --> 00:01:17,389
+直接运行 Jar，四秒内服务在 8080 端口就绪。
+Running the jar starts the service on port 8080 within four seconds.
+
+15
+00:01:18,039 --> 00:01:22,599
+健康检查返回 UP，库表和演示数据已自动初始化。
+Health check returns UP, with schema and demo data auto-initialized.
+
+16
+00:01:26,299 --> 00:01:31,016
+前端装好依赖后构建，两千多个模块十五秒完成。
+The frontend build transforms over two thousand modules in 15 seconds.
+
+17
+00:01:31,666 --> 00:01:34,742
+开发时 Vite 把接口请求代理到后端服务。
+In development, Vite proxies API calls to the backend.
+
+18
+00:01:35,392 --> 00:01:39,548
+生产用 Nginx 托管静态资源并反向代理接口。
+In production, Nginx serves static assets and reverse-proxies the API.
+
+19
+00:01:40,198 --> 00:01:43,890
+Docker Compose 可一次拉起数据库、后端与前端。
+Docker Compose brings up the database, backend and frontend at once.
+
+20
+00:01:47,590 --> 00:01:50,773
+系统运行起来后，用管理员账号登录。
+With the system running, sign in using the administrator account.
+
+21
+00:01:51,423 --> 00:01:55,799
+登录成功后，服务端签发令牌并下发权限菜单。
+On success, the server issues a token and returns authorized menus.
+
+22
+00:01:56,449 --> 00:02:00,901
+左侧导航按角色动态生成，共十四个功能入口。
+The sidebar is role-driven and contains fourteen feature entries.
+
+23
+00:02:04,601 --> 00:02:08,502
+工作台聚合了实时业务数据，不是静态示例。
+The dashboard aggregates live business data, not static samples.
+
+24
+00:02:09,152 --> 00:02:13,311
+四张统计卡展示人数、审批、项目与打卡。
+Four stat cards show headcount, approvals, projects and check-ins.
+
+25
+00:02:13,961 --> 00:02:17,730
+图表由后端聚合查询直接供给前端渲染。
+Charts are fed directly by backend aggregate queries.
+
+26
+00:02:18,380 --> 00:02:22,389
+待办清单把审批任务和项目任务汇总在一处。
+The to-do list merges approval tasks with project tasks.
+
+27
+00:02:26,089 --> 00:02:29,860
+组织模块维护部门树、岗位与员工台账。
+The org module maintains departments, positions and employees.
+
+28
+00:02:30,510 --> 00:02:35,044
+员工表支持按部门、状态与关键字组合查询。
+Employee queries combine department, status and keyword filters.
+
+29
+00:02:35,694 --> 00:02:39,308
+角色授权页可勾选菜单与按钮权限码。
+The role page assigns menu and button permission codes.
+
+30
+00:02:43,008 --> 00:02:46,737
+登录口令用 PBKDF2 加盐散列后入库。
+Passwords are stored as salted PBKDF2 hashes.
+
+31
+00:02:47,387 --> 00:02:51,806
+令牌采用 HS256 签名，拦截器校验每个接口。
+HS256 tokens are verified by an interceptor on every endpoint.
+
+32
+00:02:52,456 --> 00:02:55,726
+写操作再由权限注解做二次校验。
+Write operations get a second check through permission annotations.
+
+33
+00:02:56,376 --> 00:03:00,514
+切面自动记录操作人、地址、耗时与结果。
+An aspect logs operator, address, latency and result automatically.
+
+34
+00:03:04,214 --> 00:03:09,055
+现在是真实操作录屏：在审批中心发起一张请假单。
+Now a real screen capture: filing a leave request in the approval center.
+
+35
+00:03:09,705 --> 00:03:14,348
+选择请假流程，填入标题、天数、日期与事由。
+Choose the leave flow, then fill in title, days, dates and reason.
+
+36
+00:03:14,998 --> 00:03:19,729
+提交后后端解析流程定义，创建首节点待办任务。
+On submit, the backend parses the flow and creates the first task.
+
+37
+00:03:20,379 --> 00:03:23,320
+列表立即出现一条审批中的新单据。
+A new running request appears in the list immediately.
+
+38
+00:03:27,020 --> 00:03:31,247
+切换到待我审批，能看到四条总经理终审任务。
+Switching to my approvals shows four final-review tasks.
+
+39
+00:03:31,897 --> 00:03:34,548
+点击通过并填写审批意见。
+Click approve and enter a comment.
+
+40
+00:03:35,198 --> 00:03:38,936
+确认后当前节点关闭，流程自动推进。
+Confirming closes the node and advances the flow automatically.
+
+41
+00:03:39,586 --> 00:03:43,268
+待办数量随之减少，全程都有审批留痕。
+The pending count drops, and every step leaves an audit trail.
+
+42
+00:03:46,968 --> 00:03:50,626
+工作流由定义、实例、任务三张表支撑。
+The workflow rests on three tables: definition, instance and task.
+
+43
+00:03:51,276 --> 00:03:55,012
+节点用 JSON 配置，按角色解析办理人。
+Nodes are JSON-configured and assignees resolve by role.
+
+44
+00:03:55,662 --> 00:03:59,361
+通过推进到下一节点，最后节点关闭单据。
+Approval advances to the next node; the last one closes the request.
+
+45
+00:04:00,011 --> 00:04:03,408
+驳回与撤回都会把剩余任务置为取消。
+Rejection and withdrawal cancel all remaining tasks.
+
+46
+00:04:07,108 --> 00:04:11,303
+任务协作是四列看板，卡片带负责人与进度。
+Task collaboration uses a four-column board with owners and progress.
+
+47
+00:04:11,953 --> 00:04:15,216
+点击卡片可切换状态、查看评论。
+Clicking a card lets you move its status and read comments.
+
+48
+00:04:15,866 --> 00:04:19,171
+状态流转会自动同步完成百分比。
+Moving a card automatically updates its progress percentage.
+
+49
+00:04:22,871 --> 00:04:26,767
+云文档支持真实上传、版本记录与下载计数。
+Cloud docs support real uploads, versioning and download counts.
+
+50
+00:04:27,417 --> 00:04:31,283
+考勤页按九点与十八点判定迟到和早退。
+Attendance flags late arrivals and early departures against the schedule.
+
+51
+00:04:31,933 --> 00:04:35,230
+公告带置顶、分类与已读回执。
+Notices support pinning, categories and read receipts.
+
+52
+00:04:35,880 --> 00:04:39,430
+日程模块对同一会议室做互斥校验。
+The calendar rejects overlapping room bookings.
+
+53
+00:04:43,130 --> 00:04:48,508
+从建库、鉴权到审批流，这是一套可运行的完整系统。
+From schema and auth to workflows, this is a complete runnable system.
+
+54
+00:04:49,158 --> 00:04:54,045
+仓库地址在画面底部，包含源码、文档与部署脚本。
+The repository link sits at the bottom, with source, docs and deploy scripts.
+
+55
+00:04:54,695 --> 00:04:58,145
+克隆之后两条命令即可在本地复现。
+Clone it and two commands reproduce the whole demo locally.
